@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Zyvora — Text Mode</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+  <header class="bg-gray-800 p-4 flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-green-300">Zyvora — Text Mode</h1>
+      <p class="text-sm text-gray-400">Conversational tutor — adapts to your learning rate.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="toVoice" class="bg-pink-500 px-3 py-2 rounded-md">Switch to Voice</button>
+    </div>
+  </header>
+
+  <main class="flex-1 p-6 overflow-auto" id="chatArea">
+    <div id="welcomeCard" class="bg-gray-800 rounded-xl p-5 shadow">
+      <h2 class="text-lg text-green-300 font-semibold">Welcome 👋</h2>
+      <p class="text-gray-300 mt-2">I'll ask a short diagnostic first so I can tailor explanations to you.</p>
+      <button id="startDiag" class="mt-4 px-4 py-2 bg-blue-600 rounded">Start Diagnostic</button>
+    </div>
+  </main>
+
+  <footer class="p-4 bg-gray-800">
+    <div class="max-w-3xl mx-auto flex gap-3">
+      <input id="userMsg" class="flex-grow bg-gray-700 rounded-full px-4 py-3 outline-none" placeholder="Ask anything..." />
+      <button id="sendBtn" class="bg-green-500 px-4 py-2 rounded-full">Send</button>
+    </div>
+  </footer>
+
+<script>
+const userIdKey = "zyvora_user_id";
+function getUserId(){
+  let id = localStorage.getItem(userIdKey);
+  if(!id){
+    id = "user_" + Math.random().toString(36).slice(2,9);
+    localStorage.setItem(userIdKey, id);
+  }
+  return id;
+}
+
+async function postJSON(url, data){
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+function appendBubble(who, text){
+  const chat = document.getElementById("chatArea");
+  const wrapper = document.createElement("div");
+  wrapper.className = who === "bot" ? "mb-4" : "mb-4 text-right";
+
+  // Use marked.js to convert Markdown to HTML and set via innerHTML
+  const formattedText = marked.parse(text);
+
+  wrapper.innerHTML = who === "bot" ? 
+    `<div class="bg-gray-800 p-4 rounded-xl shadow"><strong class="text-green-300">Zyvora</strong><div class="mt-2 text-gray-200" style="white-space: pre-wrap;">${formattedText}</div></div>` :
+    `<div class="inline-block bg-blue-600 p-4 rounded-xl shadow"><strong>You</strong><div class="mt-2 text-white" style="white-space: pre-wrap;">${formattedText}</div></div>`;
+  chat.appendChild(wrapper);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+document.getElementById("startDiag").addEventListener("click", async ()=>{
+  const uid = getUserId();
+  const answers = {};
+  answers.q1 = prompt("Q1: Explain in one sentence what photosynthesis does.");
+  answers.q2 = prompt("Q2: If you increase the force on an object, what happens to acceleration?");
+  answers.q3 = prompt("Q3: Rate your confidence 1-5");
+  const payload = {user_id: uid, answers: answers, lang: "en"};
+  const res = await postJSON("/diagnostic", payload);
+  localStorage.setItem("zyvora_profile", JSON.stringify(res.profile));
+  document.getElementById("welcomeCard").style.display = "none";
+  appendBubble("bot", `Great — I'll teach you in **${res.profile.proficiency < 0.33 ? "STEP-BY-STEP" : (res.profile.proficiency < 0.7 ? "BALANCED" : "CONCISE")}** style. Ask me anything!`);
+});
+
+document.getElementById("sendBtn").addEventListener("click", sendMessage);
+document.getElementById("userMsg").addEventListener("keypress", (e)=>{ if(e.key === "Enter") sendMessage(); });
+
+async function sendMessage(){
+  const text = document.getElementById("userMsg").value.trim();
+  if(!text) return;
+  appendBubble("you", text);
+  document.getElementById("userMsg").value = "";
+  const uid = getUserId();
+  const profile = JSON.parse(localStorage.getItem("zyvora_profile") || "null");
+  const payload = {user_id: uid, message: text, lang: profile?.language || "en"};
+  appendBubble("bot", "Thinking...");
+  const res = await postJSON("/chat", payload);
+  const chat = document.getElementById("chatArea");
+  chat.removeChild(chat.lastChild);
+  if(res.error) {
+    appendBubble("bot", "⚠️ Error: " + res.error);
+  } else {
+    appendBubble("bot", res.reply);
+    if(res.profile) localStorage.setItem("zyvora_profile", JSON.stringify(res.profile));
+  }
+}
+
+document.getElementById("toVoice").addEventListener("click", ()=> location.href = "/voice");
+
+</script>
+</body>
+</html>
