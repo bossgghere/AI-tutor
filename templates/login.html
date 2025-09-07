@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Login - Zyvora</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-screen flex items-center justify-center bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600">
+  <div class="bg-white p-8 rounded-2xl shadow-xl w-96">
+    <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Login</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p class="mb-4 text-center text-sm {% if category == 'error' %}text-red-600{% else %}text-green-600{% endif %}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="space-y-4">
+      <input type="text" name="username" placeholder="Username" required 
+             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+      <input type="password" name="password" placeholder="Password" required 
+             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+      <button type="submit" 
+              class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition">Login</button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-6">
+      Don’t have an account? 
+      <a href="{{ url_for('signup') }}" class="text-purple-600 font-medium hover:underline">Sign up</a>
+    </p>
+  </div>
+</body>
+</html>

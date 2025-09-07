@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Zyvora — Survey</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-lg">
+    <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">Learning Survey</h1>
+
+    <!-- Question container -->
+    <form id="surveyForm" method="POST" action="/survey">
+      <div id="questionContainer" class="text-center">
+        <p id="questionText" class="text-lg font-medium mb-6">Do you like short explanations of subjects?</p>
+
+        <div class="flex justify-center space-x-4">
+          <button type="button" onclick="nextQuestion('yes')" class="px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">Yes</button>
+          <button type="button" onclick="nextQuestion('no')" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">No</button>
+        </div>
+      </div>
+
+      <!-- Hidden inputs for storing answers -->
+      <input type="hidden" name="q1" id="q1" />
+      <input type="hidden" name="q2" id="q2" />
+      <input type="hidden" name="q3" id="q3" />
+    </form>
+  </div>
+
+  <script>
+    const questions = [
+      "Do you like short explanations of subjects?",
+      "Do you like a story-like explanation in a real-world example?",
+      "Do you understand the subject by reading it once?"
+    ];
+
+    let currentQuestion = 0;
+    const answers = {};
+
+    function nextQuestion(answer) {
+      if (currentQuestion === 0) {
+        document.getElementById("q1").value = answer;
+      } else if (currentQuestion === 1) {
+        document.getElementById("q2").value = answer;
+      } else if (currentQuestion === 2) {
+        document.getElementById("q3").value = answer;
+      }
+
+      currentQuestion++;
+
+      if (currentQuestion < questions.length) {
+        document.getElementById("questionText").innerText = questions[currentQuestion];
+      } else {
+        document.getElementById("surveyForm").submit();
+      }
+    }
+  </script>
+</body>
+</html>
