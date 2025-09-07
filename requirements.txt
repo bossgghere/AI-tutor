@@ -4,3 +4,5 @@ requests
 google-generativeai
 deep-translator
 newsapi-python
+newsapi-python
+ 
