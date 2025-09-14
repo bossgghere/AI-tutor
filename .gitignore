@@ -1,6 +1,18 @@
-# .gitignore
-venv/
+# Python
 __pycache__/
-.env
 *.pyc
-echo "certs/" >> .gitignore
+*.pyo
+*.pyd
+*.log
+
+# Virtual environment
+venv/
+.env
+*.env
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
